@@ -63,7 +63,7 @@ def convert_df_to_csv(df):
 
 # --- Barra Lateral (Sidebar) ---
 with st.sidebar:
-    st.image("https://i.imgur.com/M6LpJ8o.png", width=100)
+    st.image(https://static.vecteezy.com/ti/vetor-gratis/p1/13462760-logotipo-de-financas-simples-vetor.jpg)
     st.title("Painel Pro de Análise")
     st.write("---")
     st.header("Configurações")

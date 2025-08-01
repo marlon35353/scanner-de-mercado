@@ -6,9 +6,8 @@ from datetime import datetime
 # --- Configuração da Página ---
 st.set_page_config(page_title="Painel Pro - B3", page_icon="⚡", layout="wide")
 
-# --- Funções Ajudantes (Movidas para o início) ---
-
-@st.cache_data(ttl=900) # Cache para não rodar a mesma análise várias vezes
+# --- Funções Ajudantes ---
+@st.cache_data(ttl=900)
 def analisar_mercado(ativos_selecionados):
     lista_de_analise = []
     barra_progresso = st.progress(0, text="Iniciando análise...")
@@ -77,44 +76,84 @@ with st.sidebar:
     )
     assets_input = st.text_area("Ativos para Análise (separados por vírgula)", value=default_assets, height=250)
     ativos = [ativo.strip().upper() for ativo in assets_input.split(',')]
+    
+    iniciar_analise = st.sidebar.button('📊 Gerar Análise de Mercado')
 
 # --- Interface Principal ---
 st.title('⚡ Painel de Análise de Mercado - B3')
 st.write('Uma ferramenta para analisar a tendência das principais ações brasileiras e identificar oportunidades de Gaps no pré-mercado.')
 
-if st.sidebar.button('📊 Gerar Análise de Mercado'):
-    df_analise = analisar_mercado(ativos)
-    
-    st.success('Análise finalizada!')
+# --- ABAS DE CONTEÚDO ---
+tab_scanner, tab_aprenda = st.tabs(["🔎 Scanner de Mercado", "📚 Aprenda a Estratégia"])
 
-    col1, col2, col3 = st.columns(3)
-    total_ativos = len(df_analise)
-    ativos_em_alta_forte = len(df_analise[df_analise['Tendência'] == 'Alta Forte'])
-    ativos_com_gap = len(df_analise.dropna(subset=['Gap (%)']))
-    col1.metric("Total de Ativos Analisados", f"{total_ativos}")
-    col2.metric("Ativos em Alta Forte", f"{ativos_em_alta_forte}")
-    col3.metric("Ativos com Gap Hoje", f"{ativos_com_gap}")
-    st.write("---")
-
-    tab_tabela, tab_graficos = st.tabs(["📋 Tabela de Dados", "📈 Gráficos Visuais"])
-
-    with tab_tabela:
-        st.subheader('Análise de Tendência dos Ativos')
+# --- Conteúdo da Aba Scanner ---
+with tab_scanner:
+    if iniciar_analise:
+        df_analise = analisar_mercado(ativos)
         
+        st.success('Análise finalizada!')
+
+        col1, col2, col3 = st.columns(3)
+        total_ativos = len(df_analise)
+        ativos_em_alta_forte = len(df_analise[df_analise['Tendência'] == 'Alta Forte'])
+        ativos_com_gap = len(df_analise.dropna(subset=['Gap (%)']))
+        col1.metric("Total de Ativos Analisados", f"{total_ativos}")
+        col2.metric("Ativos em Alta Forte", f"{ativos_em_alta_forte}")
+        col3.metric("Ativos com Gap Hoje", f"{ativos_com_gap}")
+        st.write("---")
+
+        st.subheader('Análise de Tendência dos Ativos')
         df_styled = df_analise.style.apply(lambda row: row.map(colorir_tendencia), subset=['Tendência'])\
                                      .format({'Preço Atual': "R$ {:.2f}", 'Dist. Média 50d (%)': "{:.2f}%"})
-        
         st.dataframe(df_styled, hide_index=True, use_container_width=True)
 
         csv = convert_df_to_csv(df_analise)
         nome_relatorio = f"analise_mercado_{datetime.now().strftime('%Y-%m-%d')}.csv"
         st.download_button("📄 Baixar Relatório Completo em CSV", csv, nome_relatorio, 'text/csv')
 
-    with tab_graficos:
-        st.subheader('Visualização da Distância para a Média de 50 Dias')
-        st.write("Ativos com barras positivas estão acima da média (tendência de alta de curto prazo).")
-        df_grafico = df_analise.set_index('Ativo')['Dist. Média 50d (%)'].dropna()
-        st.bar_chart(df_grafico)
+    else:
+        st.info('Aguardando o comando para iniciar a análise. Use o botão na barra lateral.')
 
-else:
-    st.info('Aguardando o comando para iniciar a análise. Use o botão na barra lateral.')
+# --- Conteúdo da Aba Aprenda ---
+with tab_aprenda:
+    st.header("Entendendo a Estratégia do Painel")
+    st.write("Esta ferramenta não é uma recomendação de compra ou venda. Ela é um scanner que identifica ativos que atendem a critérios técnicos específicos, ajudando você a filtrar o mercado e encontrar oportunidades com maior probabilidade de sucesso. Lembre-se: a decisão final e o gerenciamento de risco são sempre seus.")
+    st.write("---")
+
+    st.subheader("1. O Conceito de Tendência (Médias Móveis)")
+    st.image("https://i.imgur.com/n1y3CRo.png", caption="Exemplo de Médias Móveis de 50 (azul) e 200 (vermelho) dias.")
+    st.write("""
+    O indicador mais importante para um trader é a tendência. Operar a favor da maré aumenta muito suas chances. Usamos duas Médias Móveis Simples (MMS) para definir isso:
+    - **MMS de 50 dias:** Mostra a tendência de médio prazo.
+    - **MMS de 200 dias:** Mostra a tendência de longo prazo, a mais importante.
+
+    **Como interpretamos os sinais na tabela:**
+    - **Alta Forte:** O preço atual está ACIMA das médias de 50 e 200 dias. É o cenário mais forte e seguro para procurar por compras.
+    - **Alta:** O preço está acima de pelo menos uma das duas médias. Requer mais atenção.
+    - **Baixa / Baixa Forte:** O preço está ABAIXO das médias. Nestes casos, a estratégia recomenda ficar de fora ou procurar por operações de venda.
+    """)
+    st.write("---")
+    
+    st.subheader("2. A Oportunidade do Gap")
+    st.write("""
+    Um "Gap" acontece quando o preço de abertura de um ativo é muito diferente (para cima ou para baixo) do preço de fechamento do dia anterior. Isso geralmente é causado por notícias ou eventos importantes que aconteceram com o mercado fechado.
+    
+    **Por que isso é importante?**
+    - **Indica Volatilidade:** Um gap sinaliza que o ativo provavelmente terá um dia de grandes movimentos.
+    - **Gera Oportunidades:** Traders de day trade adoram gaps, pois eles criam pontos de entrada claros para operar a favor do movimento inicial.
+    
+    Nossa ferramenta calcula o Gap (%) durante o pré-mercado (9:45 - 10:00) e o exibe na tabela para que você saiba quais ativos estão "quentes" para o dia.
+    """)
+    st.write("---")
+
+    st.subheader("3. O Passo Mais Importante: Gerenciamento de Risco")
+    st.error("""
+    **NENHUMA ESTRATÉGIA FUNCIONA SEM GERENCIAMENTO DE RISCO.**
+    
+    Antes de entrar em qualquer operação que o scanner aponte, você DEVE saber responder a estas perguntas:
+    1. **Qual o meu ponto de Stop-Loss?** Se a operação der errado, em qual preço eu vou vender para limitar meu prejuízo?
+    2. **Qual o meu Alvo?** Onde pretendo realizar meu lucro? A relação entre o potencial de ganho e o de perda deve ser, no mínimo, 2 para 1.
+    3. **Qual o tamanho da minha posição?** Quanto do meu capital estou disposto a arriscar nesta única operação?
+    
+    Use esta ferramenta como um poderoso assistente, mas opere com disciplina e responsabilidade.
+    """)

@@ -63,7 +63,6 @@ def convert_df_to_csv(df):
 
 # --- Barra Lateral (Sidebar) ---
 with st.sidebar:
-    # IMAGEM DO LOGO CORRIGIDA
     st.image("https://static.vecteezy.com/system/resources/previews/013/462/760/original/simple-finance-logo-vector.jpg", width=100)
     st.title("Painel Pro de Análise")
     st.write("---")
@@ -113,25 +112,36 @@ with tab_scanner:
 
 with tab_aprenda:
     st.header("Entendendo a Estratégia do Painel")
-    st.write("Esta ferramenta não é uma recomendação de compra ou venda...") # Mantive o texto curto para não colar tudo de novo
+    st.write("Esta ferramenta não é uma recomendação de compra ou venda. Ela é um scanner que identifica ativos que atendem a critérios técnicos específicos, ajudando você a filtrar o mercado e encontrar oportunidades com maior probabilidade de sucesso. Lembre-se: a decisão final e o gerenciamento de risco são sempre seus.")
     st.write("---")
 
-    st.subheader("1. O Conceito de Tendência (Médias Móveis)")
-    # IMAGEM DO GRÁFICO CORRIGIDA
-    st.image("https://i.imgur.com/g0559pG.png", caption="Exemplo de Médias Móveis de 50 (azul) e 200 (vermelho) dias.")
+    st.subheader("1. O Conceito de Tendência")
+    # --- IMAGEM ATUALIZADA AQUI ---
+    st.image("https://contee.org.br/wp-content/uploads/2021/01/bolsa-de-valores-em-alta.jpg", caption="Operar a favor da tendência aumenta as chances de sucesso.")
     st.write("""
-    O indicador mais importante para um trader é a tendência...
+    O indicador mais importante para um trader é a tendência. Usamos duas Médias Móveis Simples (MMS) para definir isso:
+    - **MMS de 50 dias:** Mostra a tendência de médio prazo.
+    - **MMS de 200 dias:** Mostra a tendência de longo prazo, a mais importante.
+
+    **Como interpretamos os sinais na tabela:**
+    - **Alta Forte:** O preço atual está ACIMA das médias de 50 e 200 dias. É o cenário mais forte e seguro para procurar por compras.
+    - **Alta:** O preço está acima de pelo menos uma das duas médias.
+    - **Baixa / Baixa Forte:** O preço está ABAIXO das médias. Nestes casos, a estratégia recomenda ficar de fora.
     """)
     st.write("---")
     
     st.subheader("2. A Oportunidade do Gap")
     st.write("""
-    Um "Gap" acontece quando o preço de abertura de um ativo é muito diferente...
+    Um "Gap" acontece quando o preço de abertura de um ativo é muito diferente do fechamento do dia anterior, geralmente causado por notícias importantes. Para o day trade, isso sinaliza que o ativo provavelmente terá um dia de grandes movimentos.
     """)
     st.write("---")
 
     st.subheader("3. O Passo Mais Importante: Gerenciamento de Risco")
     st.error("""
     **NENHUMA ESTRATÉGIA FUNCIONA SEM GERENCIAMENTO DE RISCO.**
-    ...
+    
+    Antes de entrar em qualquer operação, você DEVE saber responder:
+    1. **Qual o meu ponto de Stop-Loss?** (Onde vender se a operação der errado?)
+    2. **Qual o meu Alvo de Lucro?** (Onde vender se a operação der certo?)
+    3. **Qual o tamanho da minha posição?** (Quanto do meu capital estou arriscando?)
     """)

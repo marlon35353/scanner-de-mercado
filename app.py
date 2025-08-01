@@ -74,7 +74,6 @@ if st.sidebar.button('📊 Gerar Análise de Mercado'):
     
     st.success('Análise finalizada!')
 
-    # --- Cartões de Resumo (Metrics) ---
     col1, col2, col3 = st.columns(3)
     total_ativos = len(df_analise)
     ativos_em_alta_forte = len(df_analise[df_analise['Tendência'] == 'Alta Forte'])
@@ -84,45 +83,23 @@ if st.sidebar.button('📊 Gerar Análise de Mercado'):
     col3.metric("Ativos com Gap Hoje", f"{ativos_com_gap}")
     st.write("---")
 
-    # --- Função para colorir a tabela ---
     def colorir_tendencia(val):
-        color = 'gray'
-        if val == 'Alta Forte': color = 'lightgreen'
-        elif val == 'Alta': color = 'palegreen'
-        elif val == 'Baixa Forte': color = 'lightcoral'
+        color = '#4F4F4F' # Cor padrão cinza escuro
+        if val == 'Alta Forte': color = 'green'
+        elif val == 'Alta': color = 'lightgreen'
+        elif val == 'Baixa Forte': color = 'red'
         elif val == 'Baixa': color = 'lightpink'
-        return f'background-color: {color}'
+        return f'color: {color}; font-weight: bold;'
 
-    # --- Abas (Tabs) ---
     tab_tabela, tab_graficos = st.tabs(["📋 Tabela de Dados", "📈 Gráficos Visuais"])
 
     with tab_tabela:
         st.subheader('Análise de Tendência dos Ativos')
-        df_styled = df_analise.style.applymap(colorir_tendencia, subset=['Tendência'])\
-                                     .format({'Preço Atual': "R$ {:.2f}", 
-                                              'Gap (%)': "{:.2f}%", 
-                                              'Dist. Média 50d (%)': "{:.2f}%"})
+        # --- CORREÇÃO APLICADA AQUI ---
+        # Removemos o '.format()' para garantir compatibilidade e aplicamos a cor ao texto
+        df_styled = df_analise.style.apply(lambda row: row.map(colorir_tendencia), subset=['Tendência'])
+        
         st.dataframe(df_styled, hide_index=True, use_container_width=True)
 
         # --- Botão de Download ---
         @st.cache_data
-        def convert_df_to_csv(df): return df.to_csv(index=False).encode('utf-8')
-        csv = convert_df_to_csv(df_analise)
-        nome_relatorio = f"analise_mercado_{datetime.now().strftime('%Y-%m-%d')}.csv"
-        st.download_button(
-            label="📄 Baixar Relatório Completo em CSV",
-            data=csv,
-            file_name=nome_relatorio,
-            mime='text/csv',
-        )
-
-    with tab_graficos:
-        st.subheader('Visualização da Distância para a Média de 50 Dias')
-        st.write("Ativos com barras positivas estão acima da média (tendência de alta de curto prazo).")
-        
-        # Prepara dados para o gráfico
-        df_grafico = df_analise.set_index('Ativo')['Dist. Média 50d (%)'].dropna()
-        st.bar_chart(df_grafico)
-
-else:
-    st.info('Aguardando o comando para iniciar a análise. Use o botão na barra lateral.')
